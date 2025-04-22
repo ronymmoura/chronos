@@ -1,0 +1,64 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+        - 1433:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=E882mwxh
+    volumes:
+      - data:/var/opt/mssql
+    networks:
+      - mynet
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "E882mwxh" -C -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  migrate:
+    image: migrate/migrate
+    networks:
+      - mynet
+    volumes:
+      - ./internal/db/migrations:/app/internal/db/migrations
+    command: ["-path", "/app/internal/db/migrations", "-database",  "sqlserver://sa:E882mwxh@localhost?database=chronos", "up"]
+    links:
+      - mssql
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - mynet
+    links:
+      - mssql
+      - migrate
+    command: ["/app/main"]
+
+  app-dev:
+    build:
+      dockerfile: Dockerfile-dev
+      context: ./
+    volumes:
+      - ./:/app
+    networks:
+      - mynet
+    links:
+      - migrate
+    ports:
+      - 8080:8080
+    depends_on:
+      mssql:
+        condition: service_healthy
+
+volumes:
+  data:
+
+networks:
+  mynet:
+    driver: bridge
