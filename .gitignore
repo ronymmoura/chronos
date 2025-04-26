@@ -22,8 +22,5 @@ go.work
 go.work.sum
 
 # env file
-<<<<<<< HEAD
 .env
-=======
-#.env
->>>>>>> c6248ca (feat: scheduler)
+tmp

@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"time"
-
 	"github.com/ronymmoura/chronos/internal/db"
 	"github.com/ronymmoura/chronos/internal/models"
 )
@@ -27,13 +25,15 @@ INSERT INTO process
 	name,
 	description,
 	path,
+	env,
 	execute_every_secs
 ) VALUES (
 	:name,
 	:description,
 	:path,
+	:env,
 	:execute_every_secs
-) RETURNING *
+)
 `
 
 func (r *ProcessRepository) Insert(args *models.Process) (*models.Process, error) {
@@ -69,18 +69,48 @@ func (r *ProcessRepository) SelectAll() ([]*models.Process, error) {
 	return rows, nil
 }
 
+// --------------------------------
+// Select By ID
+// --------------------------------
+
+const selectByIDQuery = `SELECT * FROM process WHERE id = $1`
+
+func (r *ProcessRepository) GetByID(id int32) (*models.Process, error) {
+	process := &models.Process{}
+	if err := r.DB.Conn.Get(process, selectByIDQuery, id); err != nil {
+		return nil, err
+	}
+
+	return process, nil
+}
+
+// --------------------------------
+// Select Actives
+// --------------------------------
+
+const selectActivesQuery = `SELECT * FROM process WHERE status = 'active'`
+
+func (r *ProcessRepository) SelectActives() ([]*models.Process, error) {
+	rows := []*models.Process{}
+	if err := r.DB.Conn.Select(&rows, selectActivesQuery); err != nil {
+		return nil, err
+	}
+
+	return rows, nil
+}
+
 //----------------------------------
-// Update status
+// Update runnint
 //----------------------------------
 
-const updateStatusQuery = `
+const updateRunningQuery = `
 	UPDATE process
-	SET last_run = $2
+	SET running = $2
 	WHERE id = $1
 	`
 
-func (r *ProcessRepository) UpdateStatus(id int32, lastRun time.Time) error {
-	if _, err := r.DB.Conn.Exec(updateStatusQuery, id, lastRun); err != nil {
+func (r *ProcessRepository) UpdateRunning(id int32, running bool) error {
+	if _, err := r.DB.Conn.Exec(updateRunningQuery, id, running); err != nil {
 		return err
 	}
 

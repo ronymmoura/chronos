@@ -9,5 +9,8 @@ migration-new:
 migrate-up:
 	docker run --rm -v $(MAKEFILE_DIR):/src -w /src --network host migrate/migrate -path=internal/db/migrations/ -database="$(DB_URL)" up
 
+migrate-down:
+	docker run --rm -v $(MAKEFILE_DIR):/src -w /src --network host migrate/migrate -path=internal/db/migrations/ -database="$(DB_URL)" down -all
+
 .PHONY:
-	migration-new migrate-up
+	migration-new migrate-up migrate-down

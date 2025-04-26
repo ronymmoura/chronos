@@ -1,18 +1,23 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot } from "react-dom/client";
 import { HashRouter, Route, Routes } from "react-router";
-import './index.css'
-import { Layout } from './pages';
-import { HomePage } from './pages/home';
+import { Layout } from "./pages";
+import { HomePage } from "./pages/home";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
-        </Route>
-      </Routes>
-    </HashRouter>
-  </StrictMode>,
-)
+import "./index.css";
+
+const queryClient = new QueryClient();
+
+createRoot(document.getElementById("root")!).render(
+  <>
+    <QueryClientProvider client={queryClient}>
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<HomePage />} />
+          </Route>
+        </Routes>
+      </HashRouter>
+    </QueryClientProvider>
+  </>,
+);
